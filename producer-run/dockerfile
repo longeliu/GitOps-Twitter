@@ -1,0 +1,7 @@
+FROM longeliu/producer_template
+
+COPY API_KEY.json /home/API_KEY.json
+
+COPY producer  /home/producer
+
+CMD [ "python3", "-m", "producer"]

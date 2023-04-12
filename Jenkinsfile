@@ -1,32 +1,34 @@
-node {
-    def app
-
-    stage("Clone repository"){
-        
-        
-        
-        checkout scm
-    }
-
-    stage('Build Images'){
-        app = docker.build("longeliu/#PENDIENTE DE CREAR IMG")
-    }
-
-    stage('Test image'){
-
-        app.inside{
-            sh 'echo "Tests passed"' 
+pipeline {
+    agent any
+    stages {
+        stage('Checkout GitOps repo') {
+            steps {
+                checkout scm
+            }
         }
-    }
-
-    stage("Push image"){
-        docker.withRegistry('https://registry.hub.docker.com', 'dockerhub'){
-            app.push("${env.BUILD_NUMBER}")
+        stage('Build image producer') {
+            steps {
+                dir('./producer-run/') {
+                    script {
+                        docker.build('producer:latest')
+                        docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                            docker.push("${env.BUILD_NUMBER}")
+                        }
+                    }
+                }
+            }
         }
-    }
-
-    stage('Trigger ManifestUpdate'){
-        echo "triggering updatemanifestjob"
-        build job: 'updatemanifest', parameters: [string(name: 'DOCKERTAG', value: env.BUILD_NUMBER)]
+        stage('Build image producer service') {
+            steps {
+                dir('./producer_service-run/') {
+                    script {
+                        docker.build('producer-service:latest')
+                        docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                            docker.push("${env.BUILD_NUMBER}")
+                        }
+                    }
+                }
+            }
+        }
     }
 }

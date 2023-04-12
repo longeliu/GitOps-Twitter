@@ -1,0 +1,7 @@
+FROM longeliu/producer-service
+
+COPY TopicService /home
+
+WORKDIR /home
+
+CMD [ "python3", "producer_service.py" ]
